@@ -150,9 +150,10 @@ jobs:
           tag_name: ${{ steps.tag-format.outputs.tag }}
           draft: false
           prerelease: false
-          files:
-            - tcc-linux-amd64
-            - tcc-osx-amd64
-            - tcc-windows-amd64
+          files: |
+            tcc-linux-amd64
+            tcc-osx-amd64
+            tcc-windows-amd64
           repository: rdeusser/tinycc
+          token: ${{ secrets.TOKEN }}
           generate_release_notes: false
