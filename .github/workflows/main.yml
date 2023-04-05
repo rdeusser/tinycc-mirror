@@ -9,7 +9,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          name: rdeusser/tinycc
+          repository: rdeusser/tinycc
+          ref: main
       - name: Merge latest changes
         run: |
           git config --global user.name "Robert Deusser"
@@ -17,6 +18,8 @@ jobs:
           git remote add upstream git://repo.or.cz/tinycc.git
           git pull --rebase upstream mob
           git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Check if repo has a tag
         run: |
           [[ -n $(git tag) ]]
@@ -26,6 +29,8 @@ jobs:
           new_tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g")
           git tag -a "${new_tag}" -m "${new_tag}"
           git push origin "${new_tag}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-linux-amd64:
     name: linux/amd64
     runs-on: ubuntu-latest
@@ -115,6 +120,8 @@ jobs:
           git commit -m "ci: update changelog"
           git tag -a "${new_tag}" -m "${new_tag}"
           git push origin "${new_tag}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Get latest tag
         id: tag
         run: |
