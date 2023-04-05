@@ -7,11 +7,12 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Merge latest changes
+        uses: actions/checkout@v3
         with:
           repository: rdeusser/tinycc
           ref: main
-      - name: Merge latest changes
+          token: ${{ secrets.TOKEN }}
         run: |
           git config --global user.name "Robert Deusser"
           git config --global user.email "rdeusser@users.noreply.github.com"
