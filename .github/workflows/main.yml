@@ -1,4 +1,4 @@
-name: Build and release
+name: Main
 on:
   schedule:
     - cron: "0 0 * * 0"
