@@ -1,0 +1,129 @@
+name: Main
+on:
+  schedule:
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          name: rdeusser/tinycc
+      - name: Merge latest changes
+        run: |
+          git remote add upstream git://repo.or.cz/tinycc.git
+          git pull --rebase upstream mob
+          git push origin main
+      - name: Check if repo has a tag
+        run: |
+          [[ -n $(git tag) ]]
+      - name: Push transformed latest tag from tinycc
+        if: ${{ success() }}
+        run: |
+          new_tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g")
+          git tag -a "${new_tag}" -m "${new_tag}"
+          git push origin "${new_tag}"
+  build-linux-amd64:
+    name: linux/amd64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y gcc
+      - name: Build
+        run: |
+          ./configure
+          make
+      - name: Test
+        run: |
+          make test
+      - uses: actions/upload-artifact@v3
+        with:
+          name: tcc-linux-amd64
+          path: tcc
+  build-osx-amd64:
+    name: osx/amd64
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: |
+          ./configure
+          make
+      - name: Test
+        run: |
+          make test
+      - uses: actions/upload-artifact@v3
+        with:
+          name: tcc-osx-amd64
+          path: tcc
+  build-windows-amd64:
+    name: windows/amd64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: msys2/setup-msys2@v2
+      - name: Build
+        run: |
+          msys2 -c './configure'
+          make
+      - name: Silence 96_nodata_wanted
+        run: |
+          pushd .\tests\tests2
+          Get-Content .\96_nodata_wanted.expect -TotalCount 2 | Out-File .\96_nodata_wanted.expect2 -Encoding default
+          mv .\96_nodata_wanted.expect2 .\96_nodata_wanted.expect -force
+          popd
+      - name: Test
+        run: |
+          make test
+      - uses: actions/upload-artifact@v3
+        with:
+          name: tcc-windows-amd64
+          path: tcc
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Tag new version
+        run: |
+          new_tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g" | awk -F. '/[0-9]+\./{$NF++;print}' OFS=.)
+          git tag -a "${new_tag}" -m "${new_tag}"
+      - name: Generate changelog
+        run: |
+          git fetch --tags
+          rm CHANGELOG.md
+          previous_tag=0
+          for current_tag in $(git tag --sort=-creatordate); do
+              if [ "${previous_tag}" != 0 ]; then
+                  tag_date=$(git log -1 --pretty=format:'%as')
+                  previous_tag_name=$(echo "${previous_tag}" | sed '/release_/,//s/release_/v/' | sed "s/_/./g")
+                  printf "## %s (%s)\n\n" "${previous_tag_name}" "${tag_date}"
+                  git log "${current_tag}"..."${previous_tag}" --pretty=format:'*  %s [link](https://repo.or.cz/tinycc.git/commit/%H)' --reverse | grep -v Merge | grep -v "ci: update changelog" >> CHANGELOG.md
+                  printf "\n"
+              fi
+              previous_tag="${current_tag}"
+          done
+      - name: Push new tag
+        run: |
+          new_tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g")
+          git tag -d "${new_tag}"
+          git add CHANGELOG.md
+          git commit -m "ci: update changelog"
+          git tag -a "${new_tag}" -m "${new_tag}"
+          git push origin "${new_tag}"
+      - name: Get latest tag
+        id: tag
+        run: |
+          echo {tag}=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g") >> $GITHUB_OUTPUT
+      - name: Create release
+        uses: softprops/action-gh-release@v0.1.15
+        with:
+          body_path: CHANGELOG.md
+          tag_name: ${{ steps.tag-format.outputs.tag }}
+          draft: false
+          prerelease: false
+          files:
+          repository: rdeusser/tinycc
+          generate_release_notes: false
