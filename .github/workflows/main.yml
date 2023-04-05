@@ -21,11 +21,9 @@ jobs:
           git push origin main
       - name: Push transformed latest tag from tinycc
         run: |
-          if [[ -n $(git tag) ]]; then
-              new_tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g")
-              git tag -a "${new_tag}" -m "${new_tag}"
-              git push origin "${new_tag}"
-          fi
+          new_tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g")
+          git tag -a "${new_tag}" -m "${new_tag}" || true
+          git push origin "${new_tag}" || true
 
   build-linux-amd64:
     name: linux/amd64
@@ -133,6 +131,18 @@ jobs:
         id: tag
         run: |
           echo {tag}=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g") >> $GITHUB_OUTPUT
+      - uses: actions/download-artifact@v3
+        with:
+          name: tcc-linux-amd64
+          path: tcc-linux-amd64
+      - uses: actions/download-artifact@v3
+        with:
+          name: tcc-osx-amd64
+          path: tcc-osx-amd64
+      - uses: actions/download-artifact@v3
+        with:
+          name: tcc-windows-amd64
+          path: tcc-windows-amd64
       - name: Create release
         uses: softprops/action-gh-release@v0.1.15
         with:
@@ -141,5 +151,8 @@ jobs:
           draft: false
           prerelease: false
           files:
+            - tcc-linux-amd64
+            - tcc-osx-amd64
+            - tcc-windows-amd64
           repository: rdeusser/tinycc
           generate_release_notes: false
