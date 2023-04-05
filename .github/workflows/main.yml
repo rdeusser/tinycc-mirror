@@ -11,7 +11,7 @@ jobs:
         with:
           repository: rdeusser/tinycc
           ref: main
-          with: ${{ secrest.TOKEN }}
+          with: ${{ secret.TOKEN }}
         run: |
           git config --global user.name "Robert Deusser"
           git config --global user.email "rdeusser@users.noreply.github.com"
