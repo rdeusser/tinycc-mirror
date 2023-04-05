@@ -19,7 +19,7 @@ jobs:
           git pull --rebase upstream mob
           git push origin main
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
       - name: Check if repo has a tag
         run: |
           [[ -n $(git tag) ]]
@@ -30,7 +30,7 @@ jobs:
           git tag -a "${new_tag}" -m "${new_tag}"
           git push origin "${new_tag}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
   build-linux-amd64:
     name: linux/amd64
     runs-on: ubuntu-latest
@@ -121,7 +121,7 @@ jobs:
           git tag -a "${new_tag}" -m "${new_tag}"
           git push origin "${new_tag}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
       - name: Get latest tag
         id: tag
         run: |
