@@ -33,6 +33,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          repository: rdeusser/tinycc
+          ref: main
       - name: Install dependencies
         run: |
           sudo apt-get install -y gcc
@@ -53,6 +56,9 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          repository: rdeusser/tinycc
+          ref: main
       - name: Build
         run: |
           ./configure
@@ -70,6 +76,9 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          repository: rdeusser/tinycc
+          ref: main
       - uses: msys2/setup-msys2@v2
       - name: Build
         run: |
