@@ -11,15 +11,13 @@ jobs:
         with:
           repository: rdeusser/tinycc
           ref: main
-        env:
-          ACCESS_TOKEN: ${{ secrets.TOKEN }}
       - name: Merge latest changes
         run: |
           git config --global user.name "Robert Deusser"
           git config --global user.email "rdeusser@users.noreply.github.com"
-          git config --global credential.helper cache
           git remote add upstream git://repo.or.cz/tinycc.git
           git pull --rebase upstream mob
+          git remote set-url origin https://rdeusser:${{secrets.ACCESS_TOKEN}}@github.com/rdeusser/tinycc
           git push origin main
       - name: Check if repo has a tag
         run: |
