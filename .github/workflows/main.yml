@@ -19,15 +19,14 @@ jobs:
           git remote add upstream git://repo.or.cz/tinycc.git
           git pull --rebase upstream mob
           git push origin main
-      - name: Check if repo has a tag
-        run: |
-          [[ -n $(git tag) ]]
       - name: Push transformed latest tag from tinycc
-        if: ${{ success() }}
         run: |
-          new_tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g")
-          git tag -a "${new_tag}" -m "${new_tag}"
-          git push origin "${new_tag}"
+          if [[ -n $(git tag) ]]; then
+              new_tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g")
+              git tag -a "${new_tag}" -m "${new_tag}"
+              git push origin "${new_tag}"
+          fi
+
   build-linux-amd64:
     name: linux/amd64
     needs: [sync]
