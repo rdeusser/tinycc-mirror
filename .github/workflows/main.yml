@@ -11,6 +11,9 @@ jobs:
         with:
           repository: rdeusser/tinycc
           ref: main
+          with: ${{ secrets.TOKEN }}
+      - name: Merge latest changes
+        runs-on: ubuntu-latest
         run: |
           git config --global user.name "Robert Deusser"
           git config --global user.email "rdeusser@users.noreply.github.com"
