@@ -12,6 +12,8 @@ jobs:
           name: rdeusser/tinycc
       - name: Merge latest changes
         run: |
+          git config --global user.name "Robert Deusser"
+          git config --global user.email "rdeusser@users.noreply.github.com"
           git remote add upstream git://repo.or.cz/tinycc.git
           git pull --rebase upstream mob
           git push origin main
