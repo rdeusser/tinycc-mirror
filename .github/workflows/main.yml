@@ -104,6 +104,8 @@ jobs:
           ref: main
       - name: Tag new version
         run: |
+          git remote add upstream git://repo.or.cz/tinycc.git
+          git fetch upstream --tags
           new_tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g" | awk -F. '/[0-9]+\./{$NF++;print}' OFS=.)
           git tag -a "${new_tag}" -m "${new_tag}"
           git push origin "${new_tag}"
@@ -166,6 +168,6 @@ jobs:
             tcc-linux-amd64
             tcc-osx-amd64
             tcc-windows-amd64
-          repository: rdeusser/tinycc
+          repository: rdeusser/tinycc-mirror
           token: ${{ secrets.TOKEN }}
           generate_release_notes: false
