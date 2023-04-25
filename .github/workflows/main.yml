@@ -24,7 +24,6 @@ jobs:
           new_tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g")
           git tag -a "${new_tag}" -m "${new_tag}" || true
           git push origin "${new_tag}" || true
-
   build-linux-amd64:
     name: linux/amd64
     needs: [sync]
@@ -100,10 +99,14 @@ jobs:
     needs: [sync, build-linux-amd64, build-osx-amd64, build-windows-amd64]
     steps:
       - uses: actions/checkout@v3
+        with:
+          repository: rdeusser/tinycc
+          ref: main
       - name: Tag new version
         run: |
           new_tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g" | awk -F. '/[0-9]+\./{$NF++;print}' OFS=.)
           git tag -a "${new_tag}" -m "${new_tag}"
+          git push origin "${new_tag}"
       - name: Generate changelog
         run: |
           git fetch --tags
@@ -111,26 +114,35 @@ jobs:
           previous_tag=0
           for current_tag in $(git tag --sort=-creatordate); do
               if [ "${previous_tag}" != 0 ]; then
-                  tag_date=$(git log -1 --pretty=format:'%as')
+                  tag_date=$(git tag --sort=creatordate --format '%(authordate:short)' | tail -1)
                   previous_tag_name=$(echo "${previous_tag}" | sed '/release_/,//s/release_/v/' | sed "s/_/./g")
-                  printf "## %s (%s)\n\n" "${previous_tag_name}" "${tag_date}"
-                  git log "${current_tag}"..."${previous_tag}" --pretty=format:'*  %s [link](https://repo.or.cz/tinycc.git/commit/%H)' --reverse | grep -v Merge | grep -v "ci: update changelog" >> CHANGELOG.md
+                  printf "## %s (%s)\n\n" "${previous_tag_name}" "${tag_date}" >> CHANGELOG.md
+                  git log "${current_tag}"..."${previous_tag}" --pretty=format:'*  %s [link](https://repo.or.cz/tinycc.git/commit/%H)' --reverse | grep -v Merge >> CHANGELOG.md
                   printf "\n"
               fi
               previous_tag="${current_tag}"
           done
-      - name: Push new tag
-        run: |
-          new_tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g")
-          git tag -d "${new_tag}"
-          git add CHANGELOG.md
-          git commit -m "ci: update changelog"
-          git tag -a "${new_tag}" -m "${new_tag}"
-          git push origin "${new_tag}"
+      - uses: actions/upload-artifact@v3
+        with:
+          name: CHANGELOG.md
+          path: CHANGELOG.md
       - name: Get latest tag
         id: tag
         run: |
           echo {tag}=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g") >> $GITHUB_OUTPUT
+      - uses: actions/download-artifact@v3
+        with:
+          name: CHANGELOG.md
+          path: CHANGELOG.md
+      - uses: actions/checkout@v3
+        with:
+          repository: rdeusser/tinycc-mirror
+          ref: main
+      - name: Push changelog
+        run: |
+          git add CHANGELOG.md
+          git commit -m "ci: update CHANGELOG.md"
+          git push origin main
       - uses: actions/download-artifact@v3
         with:
           name: tcc-linux-amd64
