@@ -104,6 +104,8 @@ jobs:
           ref: main
       - name: Tag new version
         run: |
+          git config --global user.name "Robert Deusser"
+          git config --global user.email "rdeusser@users.noreply.github.com"
           git remote add upstream git://repo.or.cz/tinycc.git
           git fetch upstream --tags
           new_tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g" | awk -F. '/[0-9]+\./{$NF++;print}' OFS=.)
