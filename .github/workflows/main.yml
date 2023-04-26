@@ -94,9 +94,11 @@ jobs:
         with:
           name: tcc-windows-amd64
           path: tcc.exe
-  release:
+  tag:
     runs-on: ubuntu-latest
     needs: [sync, build-linux-amd64, build-osx-amd64, build-windows-amd64]
+    outputs:
+      tag: ${{ steps.tag.outputs.new_tag }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -104,6 +106,7 @@ jobs:
           ref: main
           token: ${{ secrets.TOKEN }}
       - name: Tag new version
+        id: tag
         run: |
           git config --global user.name "Robert Deusser"
           git config --global user.email "rdeusser@users.noreply.github.com"
@@ -112,6 +115,11 @@ jobs:
           new_tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g" | awk -F. '/[0-9]+\./{$NF++;print}' OFS=.)
           git tag -a "${new_tag}" -m "${new_tag}"
           git push origin "${new_tag}"
+          echo "new_tag=${new_tag}" >> "$GITHUB_OUTPUT"
+  release:
+    runs-on: ubuntu-latest
+    needs: [sync, build-linux-amd64, build-osx-amd64, build-windows-amd64, tag]
+    steps:
       - name: Generate changelog
         run: |
           git fetch --tags
@@ -133,8 +141,10 @@ jobs:
           path: CHANGELOG.md
       - name: Get latest tag
         id: tag
+        outputs:
+          tag:
         run: |
-          echo {tag}=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g") >> $GITHUB_OUTPUT
+          echo "tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed 's/_/./g')" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v3
         with:
           repository: rdeusser/tinycc-mirror
@@ -161,7 +171,7 @@ jobs:
         uses: softprops/action-gh-release@v0.1.15
         with:
           body_path: CHANGELOG.md
-          tag_name: ${{ steps.tag.outputs.tag }}
+          tag_name: ${{ needs.tag.outputs.tag }}
           draft: false
           prerelease: false
           files: |
