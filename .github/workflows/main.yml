@@ -102,6 +102,7 @@ jobs:
         with:
           repository: rdeusser/tinycc
           ref: main
+          token: ${{ secrets.TOKEN }}
       - name: Tag new version
         run: |
           git config --global user.name "Robert Deusser"
