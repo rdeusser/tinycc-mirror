@@ -140,15 +140,6 @@ jobs:
               fi
               previous_tag="${current_tag}"
           done
-      - uses: actions/upload-artifact@v3
-        with:
-          name: CHANGELOG.md
-          path: CHANGELOG.md
-      - uses: actions/download-artifact@v3
-        with:
-          name: CHANGELOG.md
-      - name: Push changelog
-        run: |
           git add CHANGELOG.md
           git commit -m "ci: update CHANGELOG.md"
           git push origin main
@@ -164,7 +155,9 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v0.1.15
         with:
-          body_path: CHANGELOG.md
+          body: |
+            ## [${{ needs.tag.outputs.tag }}](https://github.com/rdeusser/tinycc/releases/tag/${{ needs.tag.outputs.tag }})
+            For a full list of changes, refer to the [changelog](https://github.com/rdeusser/tinycc-mirror/blob/main/CHANGELOG.md#${{ needs.tag.outputs.tag }}).
           tag_name: ${{ needs.tag.outputs.tag }}
           draft: false
           prerelease: false
