@@ -127,18 +127,10 @@ jobs:
               fi
               previous_tag="${current_tag}"
           done
-      - uses: actions/upload-artifact@v3
-        with:
-          name: CHANGELOG.md
-          path: CHANGELOG.md
       - name: Get latest tag
         id: tag
         run: |
           echo {tag}=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g") >> $GITHUB_OUTPUT
-      - uses: actions/download-artifact@v3
-        with:
-          name: CHANGELOG.md
-          path: CHANGELOG.md
       - uses: actions/checkout@v3
         with:
           repository: rdeusser/tinycc-mirror
