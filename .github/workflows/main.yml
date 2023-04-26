@@ -121,16 +121,24 @@ jobs:
               if [ "${previous_tag}" != 0 ]; then
                   tag_date=$(git tag --sort=creatordate --format '%(authordate:short)' | tail -1)
                   previous_tag_name=$(echo "${previous_tag}" | sed '/release_/,//s/release_/v/' | sed "s/_/./g")
-                  printf "## %s (%s)\n\n" "${previous_tag_name}" "${tag_date}" >> CHANGELOG.md
-                  git log "${current_tag}"..."${previous_tag}" --pretty=format:'*  %s [link](https://repo.or.cz/tinycc.git/commit/%H)' --reverse | grep -v Merge >> CHANGELOG.md
+                  printf "## %s (%s)\n\n" "${previous_tag_name}" "${tag_date}" >> TINYCC_CHANGELOG.md
+                  git log "${current_tag}"..."${previous_tag}" --pretty=format:'*  %s [link](https://repo.or.cz/tinycc.git/commit/%H)' --reverse | grep -v Merge >> TINYCC_CHANGELOG.md
                   printf "\n"
               fi
               previous_tag="${current_tag}"
           done
+      - uses: actions/upload-artifact@v3
+        with:
+          name: CHANGELOG.md
+          path: TINYCC_CHANGELOG.md
       - name: Get latest tag
         id: tag
         run: |
           echo {tag}=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed "s/_/./g") >> $GITHUB_OUTPUT
+      - uses: actions/download-artifact@v3
+        with:
+          name: CHANGELOG.md
+          path: CHANGELOG.md
       - uses: actions/checkout@v3
         with:
           repository: rdeusser/tinycc-mirror
