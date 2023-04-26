@@ -127,7 +127,7 @@ jobs:
           token: ${{ secrets.TOKEN }}
       - name: Generate changelog
         run: |
-          git fetch --tags
+          git fetch --tags || true
           rm -f CHANGELOG.md
           previous_tag=0
           for current_tag in $(git tag --sort=-creatordate); do
@@ -140,6 +140,13 @@ jobs:
               fi
               previous_tag="${current_tag}"
           done
+      - uses: actions/upload-artifact@v3
+        with:
+          name: CHANGELOG.md
+          path: CHANGELOG.md
+      - uses: actions/download-artifact@v3
+        with:
+          name: CHANGELOG.md
       - name: Push changelog
         run: |
           git add CHANGELOG.md
