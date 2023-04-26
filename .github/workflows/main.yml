@@ -122,9 +122,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          repository: rdeusser/tinycc-mirror
+          repository: rdeusser/tinycc
           ref: main
-          token: ${{ secrets.TOKEN }}
       - name: Generate changelog
         run: |
           git fetch --tags || true
@@ -140,6 +139,20 @@ jobs:
               fi
               previous_tag="${current_tag}"
           done
+      - uses: actions/upload-artifact@v3
+        with:
+          name: CHANGELOG.md
+          path: CHANGELOG.md
+      - uses: actions/checkout@v3
+        with:
+          repository: rdeusser/tinycc-mirror
+          ref: main
+          token: ${{ secrets.TOKEN }}
+      - uses: actions/download-artifact@v3
+        with:
+          name: CHANGELOG.md
+      - name: Push changelog
+        run: |
           git add CHANGELOG.md
           git commit -m "ci: update CHANGELOG.md"
           git push origin main
