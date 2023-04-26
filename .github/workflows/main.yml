@@ -139,12 +139,6 @@ jobs:
         with:
           name: CHANGELOG.md
           path: CHANGELOG.md
-      - name: Get latest tag
-        id: tag
-        outputs:
-          tag:
-        run: |
-          echo "tag=$(git tag --sort=creatordate | tail -1 | sed '/release_/,//s/release_/v/' | sed 's/_/./g')" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v3
         with:
           repository: rdeusser/tinycc-mirror
