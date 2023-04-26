@@ -115,7 +115,7 @@ jobs:
       - name: Generate changelog
         run: |
           git fetch --tags
-          rm CHANGELOG.md
+          rm -f CHANGELOG.md
           previous_tag=0
           for current_tag in $(git tag --sort=-creatordate); do
               if [ "${previous_tag}" != 0 ]; then
