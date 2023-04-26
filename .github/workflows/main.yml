@@ -119,7 +119,7 @@ jobs:
           previous_tag=0
           for current_tag in $(git tag --sort=-creatordate); do
               if [ "${previous_tag}" != 0 ]; then
-                  tag_date=$(git tag --sort=creatordate --format '%(authordate:short)' | tail -1)
+                  tag_date=$(git tag --sort=creatordate --format '%(creatordate:short)' | tail -1)
                   previous_tag_name=$(echo "${previous_tag}" | sed '/release_/,//s/release_/v/' | sed "s/_/./g")
                   printf "## %s (%s)\n\n" "${previous_tag_name}" "${tag_date}" >> CHANGELOG.md
                   git log "${current_tag}"..."${previous_tag}" --pretty=format:'*  %s [link](https://repo.or.cz/tinycc.git/commit/%H)' --reverse | grep -v Merge >> CHANGELOG.md
